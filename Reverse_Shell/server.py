@@ -2,6 +2,24 @@ import socket
 import sys
 import datetime
 import os
+import json
+
+# Load configuration from config.json
+def load_config():
+    try:
+        with open("config.json", "r") as config_file:
+            config = json.load(config_file)
+            log_message("Configuration loaded from config.json")
+            return config
+    except FileNotFoundError:
+        log_message("config.json not found, using default values", "WARNING")
+        return None
+    except json.JSONDecodeError as e:
+        log_message(f"Invalid JSON in config file: {e}", "ERROR")
+        return None
+    except Exception as e:
+        log_message(f"Error loading config: {e}", "ERROR")
+        return None
 
 # Simple logging function
 def log_message(message, level="INFO"):
