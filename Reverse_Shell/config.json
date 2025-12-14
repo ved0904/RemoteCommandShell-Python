@@ -7,6 +7,9 @@
     "client": {
         "server_ip": "172.25.217.136",
         "server_port": 9999,
-        "log_file": "client.log"
+        "log_file": "client.log",
+        "reconnect_enabled": true,
+        "reconnect_delay": 5,
+        "max_reconnect_attempts": 0
     }
 }
