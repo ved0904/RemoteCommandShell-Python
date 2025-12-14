@@ -1,70 +1,261 @@
 # Remote Command Shell - Python
 
-A Python-based remote administration tool that allows secure command execution on client machines from a central server.
+A Python-based reverse shell for remote command execution and system administration. This is an educational tool that demonstrates socket programming, client-server communication, and network security concepts.
+
+**IMPORTANT:** This tool is intended for educational purposes and authorized security testing only. Only use on systems you own or have explicit permission to access. Unauthorized access to computer systems is illegal.
+
+## What This Does
+
+This project lets you remotely access another computer's terminal from your laptop. You type commands on your machine, they execute on the remote computer, and you see the results in real-time.
+
+Think of it like TeamViewer or Remote Desktop, but instead of seeing their screen, you're directly accessing their command prompt. It's like sitting at that computer and typing commands, but you're doing it from your own laptop.
 
 ## Features
 
-- Single server to multiple client connections
-- Cross-platform command execution
-- Secure socket communication
-- AWS EC2 instance support
-- Real-time command feedback
+Current features:
+- Remote command execution on client machines
+- Cross-platform support (Windows, Linux, macOS)
+- Error handling and activity logging
+- Configuration file support for easy setup
+- Real-time command output
+- Directory navigation with cd command
+- Automatic activity logging for debugging
 
-### Upcoming Features
-- Multiple client management interface
-- Simultaneous command execution across all clients
-- Encrypted communication channels
-- Client activity monitoring
+Planned features:
+- Multi-client support to handle multiple connections simultaneously
+- Auto-reconnect mechanism if connection drops
+- File upload and download capabilities
+- Encrypted communication using SSL/TLS
+- Web-based dashboard for managing clients
+- Session management and command history
 
-## Prerequisites
+## Requirements
 
-- Python 3.6+
-- AWS EC2 instance (for server deployment)
-- Putty (for Windows clients)
-- Basic firewall configuration (port 9999 open)
+- Python 3.6 or higher (tested on Python 3.8+)
+- Network connectivity between server and client
+- Port 9999 open on the server (or whatever port you configure)
+- Basic understanding of networking concepts
 
 ## Installation
-### For Server (Admin Side):
-1. **Set up your server machine**:
-   - AWS EC2: Launch a Ubuntu instance and note its public IP
-   - Local machine: Ensure Python 3.6+ is installed
 
-2. **Install dependencies**:
-   ```bash
-   pip install socket subprocess os
+First, clone the repository:
 
-3.Clone the repository:
+```bash
 git clone https://github.com/ved0904/RemoteCommandShell-Python.git
 cd Reverse_Shell
+```
 
-4.Run the server:
+Next, configure your settings by editing `Reverse_Shell/config.json`:
+
+```json
+{
+    "server": {
+        "host": "0.0.0.0",
+        "port": 9999,
+        "log_file": "server.log"
+    },
+    "client": {
+        "server_ip": "YOUR_SERVER_IP_HERE",
+        "server_port": 9999,
+        "log_file": "client.log"
+    }
+}
+```
+
+Make sure to replace `YOUR_SERVER_IP_HERE` with your actual server IP address.
+
+There are no external dependencies to install. Everything uses Python's standard library (socket, subprocess, json, datetime).
+
+## How to Use
+
+### Running the Server
+
+On your computer (the one you'll be typing commands on):
+
+```bash
+cd Reverse_Shell/Reverse_Shell
 python server.py
-(Keep this terminal open)
+```
 
-###For Client (Target Machine):
-1.Install Python 3.6+ if not already installed
+You should see something like this:
 
-2.Edit client.py:
+```
+[2025-12-14 14:41:22] [INFO] ==================================================
+[2025-12-14 14:41:22] [INFO] Reverse Shell Server Starting...
+[2025-12-14 14:41:22] [INFO] Socket created successfully on port 9999
+[2025-12-14 14:41:22] [INFO] Waiting for incoming connections...
+```
 
-3.eplace "YOUR_SERVER_IP" with your server's actual IP (line 5)
+The server is now listening for client connections.
 
-4.Save the file
+### Running the Client
 
-5.Run the client:
+On the remote computer (the one you want to control):
 
-6.Run - python client.py
-(Runs silently in background)
+Make sure the config.json file has the correct server IP, then run:
 
-Port Configuration:
-Ensure port 9999 is open on server's firewall/security group
+```bash
+python client.py
+```
 
-For AWS EC2: Add TCP rule for port 9999 in Security Groups
+The client will connect automatically and wait for commands.
 
+### Executing Commands
 
-### Server Setup (AWS EC2)
-1. Launch an EC2 instance (Ubuntu recommended)
-2. Configure security groups to allow TCP on port 9999
-3. SSH into instance using Putty
-4. Clone this repository:
+Once a client connects, you can type commands on the server terminal. Here are some examples:
+
+```bash
+dir                    # List files (Windows)
+ls -la                 # List files (Linux/Mac)
+cd Documents           # Change directory
+ipconfig               # Network info (Windows)
+ifconfig               # Network info (Linux/Mac)
+whoami                 # Current user
+systeminfo             # System information (Windows)
+quit                   # Close connection and exit
+```
+
+## Project Structure
+
+```
+Reverse_Shell/
+├── Reverse_Shell/
+│   ├── server.py           # Server-side code (your computer)
+│   ├── client.py           # Client-side code (remote computer)
+│   ├── config.json         # Configuration file
+│   ├── server.log          # Server activity log (auto-generated)
+│   └── client.log          # Client activity log (auto-generated)
+└── README.md               # This file
+```
+
+## Configuration
+
+### Server Settings
+
+In the config.json file under "server":
+- **host**: Set to "0.0.0.0" to listen on all network interfaces
+- **port**: The port to listen on (default is 9999, change if needed)
+- **log_file**: Where to save server logs
+
+### Client Settings
+
+In the config.json file under "client":
+- **server_ip**: Your server's IP address (find using ipconfig or ifconfig)
+- **server_port**: Must match the port your server is listening on
+- **log_file**: Where to save client logs
+
+## Network Setup
+
+### Local Network (Same WiFi)
+
+To find your server's IP:
+- On Windows: Run `ipconfig` and look for IPv4 Address
+- On Linux/Mac: Run `ifconfig` or `ip addr`
+
+Update the client's config.json with this IP address, and make sure your firewall allows connections on port 9999.
+
+### AWS EC2 Deployment
+
+If you want to host the server on AWS:
+
+1. Launch an EC2 instance (Ubuntu is recommended)
+2. Configure the Security Group to allow inbound TCP traffic on port 9999
+3. SSH into your instance:
    ```bash
-   git clone https://github.com/ved0904/RemoteCommandShell-Python.git
+   ssh -i your-key.pem ubuntu@your-ec2-public-ip
+   ```
+4. Install Python if needed:
+   ```bash
+   sudo apt update
+   sudo apt install python3
+   ```
+5. Clone the repository and run as described above
+
+## Log Files
+
+Both the server and client create log files automatically. These are helpful for debugging issues.
+
+Example server.log:
+```
+[2025-12-14 14:41:22] [INFO] Configuration loaded from config.json
+[2025-12-14 14:41:22] [INFO] Socket created successfully on port 9999
+[2025-12-14 14:41:30] [INFO] Connection established! IP: 192.168.1.105 | Port: 54321
+[2025-12-14 14:41:35] [INFO] Command sent to 192.168.1.105: dir
+```
+
+Example client.log:
+```
+[2025-12-14 14:41:30] [INFO] Reverse Shell Client Starting...
+[2025-12-14 14:41:30] [INFO] Connected successfully to 192.168.1.100:9999
+[2025-12-14 14:41:35] [INFO] Executing command: dir
+```
+
+## Troubleshooting
+
+**Connection Refused Error**
+- Make sure the server is actually running
+- Double-check the server IP in the client's config.json
+- Verify that port 9999 is open in your firewall
+- Ensure both machines can reach each other on the network
+
+**Config File Not Found**
+- The program will use default values if config.json is missing
+- Check the log files for warning messages
+- Make sure config.json is in the same directory as the Python scripts
+
+**Commands Not Executing**
+- Some commands might require administrator or sudo privileges
+- Try using full paths for executables if needed
+- Check the client.log file for error messages
+
+## Security Notes
+
+This is an educational tool, so please use it responsibly.
+
+Current limitations:
+- Communication is not encrypted (this is planned for a future update)
+- No authentication mechanism (also planned for the future)
+- Configure your firewall to only allow connections from trusted IP addresses
+- Only use this on systems you own or have permission to access
+- Never use this for malicious purposes
+
+## What You'll Learn
+
+By working with this project, you'll gain experience with:
+- TCP socket programming and client-server architecture
+- Remote process execution using subprocess
+- Proper error handling and exception management
+- Configuration files and JSON parsing
+- File I/O and logging systems
+- Network security concepts and reverse shells
+- Remote system administration techniques
+
+## Development Progress
+
+This project is being developed incrementally. You can see the development journey in the commit history:
+
+- Feature 1: Error handling and logging system (completed)
+- Feature 2: Configuration file support (in progress)
+- Feature 3: Auto-reconnect mechanism (planned)
+- Feature 4: File upload and download (planned)
+
+## Contributing
+
+This is an educational project, and suggestions for improvements are welcome. If you'd like to contribute:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## Legal Disclaimer
+
+This tool is provided for educational purposes only. The author is not responsible for any misuse or damage caused by this program. Always ensure you have explicit permission before running this tool on any system. Unauthorized access to computer systems is illegal and punishable by law in most jurisdictions.
+
+## Author
+
+Ved Patel
+GitHub: @ved0904
+
+Repository: https://github.com/ved0904/RemoteCommandShell-Python
