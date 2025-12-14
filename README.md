@@ -230,32 +230,9 @@ By working with this project, you'll gain experience with:
 - Network security concepts and reverse shells
 - Remote system administration techniques
 
-## Development Progress
-
-This project is being developed incrementally. You can see the development journey in the commit history:
-
-- Feature 1: Error handling and logging system (completed)
-- Feature 2: Configuration file support (in progress)
-- Feature 3: Auto-reconnect mechanism (planned)
-- Feature 4: File upload and download (planned)
-
-## Contributing
-
-This is an educational project, and suggestions for improvements are welcome. If you'd like to contribute:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## Legal Disclaimer
-
-This tool is provided for educational purposes only. The author is not responsible for any misuse or damage caused by this program. Always ensure you have explicit permission before running this tool on any system. Unauthorized access to computer systems is illegal and punishable by law in most jurisdictions.
-
 ## Author
 
-Ved Patel
+Parived Arora
 GitHub: @ved0904
 
 Repository: https://github.com/ved0904/RemoteCommandShell-Python
