@@ -4,6 +4,7 @@ import subprocess
 import datetime
 import json
 import time
+import sys
 
 # Load configuration from config.json
 def load_config():
@@ -33,6 +34,23 @@ def log_message(message, level="INFO"):
             log_file.write(log_entry)
     except:
         pass  # Silently fail if can't write logs
+
+# Display countdown with live updates
+def countdown_display(seconds, message="Retrying"):
+    try:
+        for i in range(seconds, 0, -1):
+            # Display countdown on same line
+            sys.stdout.write(f"\r{message} in {i} seconds...")
+            sys.stdout.flush()
+            time.sleep(1)
+        # Clear the line and move to next
+        sys.stdout.write("\r" + " " * 50 + "\r")
+        sys.stdout.flush()
+    except KeyboardInterrupt:
+        # User pressed Ctrl+C during countdown
+        sys.stdout.write("\r" + " " * 50 + "\r")
+        sys.stdout.flush()
+        raise
 
 # Connect to server
 def connect_to_server(host, port):
@@ -147,56 +165,62 @@ def main():
     
     attempt = 0
     
-    # Main connection loop
-    while True:
-        attempt += 1
-        
-        # Check if we've exceeded max attempts
-        if max_attempts > 0 and attempt > max_attempts:
-            log_message(f"Maximum reconnection attempts ({max_attempts}) reached. Exiting...", "ERROR")
-            break
-        
-        # Show attempt number if reconnecting
-        if attempt > 1:
-            log_message(f"Reconnection attempt {attempt}...")
-        
-        log_message(f"Attempting to connect to {host}:{port}")
-        
-        # Try to connect
-        s = connect_to_server(host, port)
-        
-        if s is not None:
-            # Connection successful
-            log_message("Connection established successfully")
+    # Main connection loop with Ctrl+C handling
+    try:
+        while True:
+            attempt += 1
             
-            # Execute commands
-            execute_commands(s)
-            
-            # If we reach here, connection was lost during operation
-            log_message("Connection lost", "WARNING")
-            
-            # Check if reconnect is enabled
-            if not reconnect_enabled:
-                log_message("Auto-reconnect is disabled. Exiting...", "WARNING")
+            # Check if we've exceeded max attempts
+            if max_attempts > 0 and attempt > max_attempts:
+                log_message(f"Maximum reconnection attempts ({max_attempts}) reached. Exiting...", "ERROR")
                 break
             
-            # Wait before reconnecting
-            log_message(f"Waiting {reconnect_delay} seconds before reconnecting...")
-            time.sleep(reconnect_delay)
-        else:
-            # Connection failed
-            if not reconnect_enabled:
-                log_message("Failed to connect to server. Exiting...", "ERROR")
-                break
+            # Show attempt number if reconnecting
+            if attempt > 1:
+                log_message(f"Reconnection attempt #{attempt}")
             
-            # Wait before retrying
-            if max_attempts == 0:
-                log_message(f"Connection failed. Retrying in {reconnect_delay} seconds...", "WARNING")
+            log_message(f"Attempting to connect to {host}:{port}")
+            
+            # Try to connect
+            s = connect_to_server(host, port)
+            
+            if s is not None:
+                # Connection successful
+                log_message("Connection established successfully")
+                attempt = 0  # Reset attempt counter
+                
+                # Execute commands
+                execute_commands(s)
+                
+                # If we reach here, connection was lost during operation
+                log_message("Connection lost", "WARNING")
+                
+                # Check if reconnect is enabled
+                if not reconnect_enabled:
+                    log_message("Auto-reconnect is disabled. Exiting...", "WARNING")
+                    break
+                
+                # Wait before reconnecting with countdown
+                log_message(f"Reconnecting in {reconnect_delay} seconds...")
+                countdown_display(reconnect_delay, "Reconnecting")
             else:
-                remaining = max_attempts - attempt
-                log_message(f"Connection failed. {remaining} attempts remaining. Retrying in {reconnect_delay} seconds...", "WARNING")
-            
-            time.sleep(reconnect_delay)
+                # Connection failed
+                if not reconnect_enabled:
+                    log_message("Failed to connect to server. Exiting...", "ERROR")
+                    break
+                
+                # Show retry information
+                if max_attempts == 0:
+                    log_message(f"Connection failed. Unlimited retries enabled.", "WARNING")
+                else:
+                    remaining = max_attempts - attempt
+                    log_message(f"Connection failed. {remaining} attempt(s) remaining.", "WARNING")
+                
+                # Wait before retrying with countdown
+                countdown_display(reconnect_delay, "Retrying")
+                
+    except KeyboardInterrupt:
+        log_message("\nClient interrupted by user (Ctrl+C)", "WARNING")
     
     log_message("Client shutting down...")
 
