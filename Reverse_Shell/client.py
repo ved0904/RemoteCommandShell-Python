@@ -5,6 +5,7 @@ import datetime
 import json
 import time
 import sys
+import hashlib
 
 # Load configuration from config.json
 def load_config():
@@ -67,6 +68,14 @@ def validate_filename(filename):
         return False, "Filename cannot be empty"
     return True, None
 
+# Calculate MD5 hash of a file
+def calculate_hash(filepath):
+    md5 = hashlib.md5()
+    with open(filepath, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            md5.update(chunk)
+    return md5.hexdigest()
+
 # Connect to server
 def connect_to_server(host, port):
     try:
@@ -113,7 +122,9 @@ def send_file(s, filename):
                 bytes_sent += len(chunk)
                 show_progress(bytes_sent, file_size, filename, "Sending")
         
-        log_message(f"File sent: {filename} ({file_size} bytes)")
+        file_hash = calculate_hash(filename)
+        s.send(file_hash.encode('utf-8'))
+        log_message(f"File sent: {filename} [Hash: {file_hash[:8]}...]")
         return True
         
     except Exception as e:
@@ -136,7 +147,14 @@ def receive_file(s, filename):
                 bytes_received += len(chunk)
                 show_progress(bytes_received, file_size, filename, "Receiving")
         
-        log_message(f"File received: {filename}")
+        remote_hash = s.recv(32).decode('utf-8')
+        local_hash = calculate_hash(filename)
+        
+        if remote_hash == local_hash:
+            log_message(f"File received: {filename} [Hash verified: {local_hash[:8]}...]")
+        else:
+            log_message(f"WARNING: Hash mismatch! File may be corrupted", "WARNING")
+        
         return True
         
     except Exception as e:

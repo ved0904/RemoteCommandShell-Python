@@ -3,6 +3,7 @@ import sys
 import datetime
 import os
 import json
+import hashlib
 
 # Load configuration from config.json
 def load_config():
@@ -51,6 +52,14 @@ def validate_filename(filename):
     if not filename or filename.strip() == "":
         return False, "Filename cannot be empty"
     return True, None
+
+# Calculate MD5 hash of a file
+def calculate_hash(filepath):
+    md5 = hashlib.md5()
+    with open(filepath, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            md5.update(chunk)
+    return md5.hexdigest()
 
 # Create socket
 def create_socket():
@@ -124,7 +133,15 @@ def receive_file(conn, filename):
                 bytes_received += len(chunk)
                 show_progress(bytes_received, file_size, filename, "Downloading")
         
-        log_message(f"File saved: {save_path}")
+        remote_hash = conn.recv(32).decode('utf-8')
+        local_hash = calculate_hash(save_path)
+        
+        if remote_hash == local_hash:
+            log_message(f"File saved: {save_path} [Hash verified: {local_hash[:8]}...]")
+        else:
+            log_message(f"WARNING: Hash mismatch! File may be corrupted", "WARNING")
+            log_message(f"Expected: {remote_hash}, Got: {local_hash}", "WARNING")
+        
         return True
         
     except Exception as e:
@@ -151,7 +168,9 @@ def send_file(conn, filename):
                 bytes_sent += len(chunk)
                 show_progress(bytes_sent, file_size, filename, "Uploading")
         
-        log_message(f"File uploaded: {filename} ({file_size} bytes)")
+        file_hash = calculate_hash(filename)
+        conn.send(file_hash.encode('utf-8'))
+        log_message(f"File uploaded: {filename} [Hash: {file_hash[:8]}...]")
         return True
         
     except Exception as e:
