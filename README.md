@@ -28,10 +28,15 @@ Before running the project, you need to install Python and two external librarie
     ```
 
 2.  **Configure Settings**
-    Open `Reverse_Shell/config.json` in a text editor like Notepad or VS Code:
-    *   Find the `"client"` section.
-    *   Change `"server_ip"` to your **actual IP address** (the computer running `server.py`).
-    *   Make sure `"server_port"` matches the port in the `"server"` section (default is `9999`).
+    Open `Reverse_Shell/config.json` and update the server IP:
+    ```json
+    {
+      "server": {
+        "host": "YOUR_IP_HERE",
+        "port": 9999
+      }
+    }
+    ```
 
 ## How to Run
 
@@ -58,10 +63,13 @@ Once connected, you can type standard commands like `dir` or `cd`.
 
 I've also built in some **special commands** to make things easier. Just type **`help`** in the server terminal to see the full list, which includes:
 
-*   **`screenshot`**: Instantly saves a screenshot of the client's screen to your computer.
-*   **`webcam`**: Snaps a picture from the client's webcam and saves it to your computer.
-*   **`wifi`**: (Windows only) Grabs all saved WiFi passwords from the client machine.
-*   **`download <filename>`**: Downloads a file from the client to your computer.
-*   **`upload <filename>`**: Uploads a file from your computer to the client.
-*   **`sysinfo`**: Shows detailed system information (OS, User, etc.).
-*   **`processes`**: Lists the top 50 running processes.
+*   **`sysinfo`**: Shows system information (OS, hostname, user, admin status)
+*   **`ipconfig`**: Displays network configuration and IP addresses
+*   **`processes`**: Lists the top 50 running processes
+*   **`wifi`**: (Windows only) Extracts all saved WiFi passwords
+*   **`screenshot`**: Captures screen and transfers to server
+*   **`webcam`**: Captures photo from webcam and transfers to server
+*   **`Hack <message>`**: Displays popup message on victim's screen
+*   **`download <filename>`**: Downloads a file from client (supports full paths)
+*   **`upload <filename>`**: Uploads a file to client
+*   **`quit`**: Closes the connection
