@@ -39,6 +39,9 @@ def log_message(message, level="INFO"):
 
 # Display countdown with live updates
 def countdown_display(seconds, message="Retrying"):
+    if sys.stdout is None:
+        time.sleep(seconds)
+        return
     try:
         for i in range(seconds, 0, -1):
             sys.stdout.write(f"\r{message} in {i} seconds...")
@@ -53,6 +56,8 @@ def countdown_display(seconds, message="Retrying"):
 
 # Display progress bar for file transfers
 def show_progress(current, total, filename, action="Transferring"):
+    if sys.stdout is None:
+        return
     percent = (current / total) * 100
     bar_len = 30
     filled = int(bar_len * current / total)
