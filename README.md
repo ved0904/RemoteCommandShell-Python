@@ -1,238 +1,67 @@
-# Remote Command Shell - Python
+# Remote Command Shell
 
-A Python-based reverse shell for remote command execution and system administration. This is an educational tool that demonstrates socket programming, client-server communication, and network security concepts.
+I built this project to create a Python-based reverse shell that allows for remote command execution and system administration. It essentially lets you open a terminal on another computer from your own machine, enabling you to run commands and see their output in real-time. The tool was designed with education in mind, serving as a practical demonstration of socket programming and how client-server architectures interact over a network.
 
-**IMPORTANT:** This tool is intended for educational purposes and authorized security testing only. Only use on systems you own or have explicit permission to access. Unauthorized access to computer systems is illegal.
+## Key Features
 
-## What This Does
+The core functionality focuses on giving you direct control over a remote system's command line, regardless of whether it's running Windows, Linux, or macOS. I made sure to include robust error handling and automatic logging so you can easily track what's happening if something goes wrong. It also supports directory navigation, meaning you can move around the file system on the remote machine just as if you were sitting right in front of it. All the configuration is handled through a simple JSON file, making it easy to adjust settings without touching the code.
 
-This project lets you remotely access another computer's terminal from your laptop. You type commands on your machine, they execute on the remote computer, and you see the results in real-time.
+## Prerequisites
 
-Think of it like TeamViewer or Remote Desktop, but instead of seeing their screen, you're directly accessing their command prompt. It's like sitting at that computer and typing commands, but you're doing it from your own laptop.
+Before running the project, you need to install Python and two external libraries on the client machine (the computer you want to control).
 
-## Features
-
-Current features:
-- Remote command execution on client machines
-- Cross-platform support (Windows, Linux, macOS)
-- Error handling and activity logging
-- Configuration file support for easy setup
-- Real-time command output
-- Directory navigation with cd command
-- Automatic activity logging for debugging
-
-Planned features:
-- Multi-client support to handle multiple connections simultaneously
-- Auto-reconnect mechanism if connection drops
-- File upload and download capabilities
-- Encrypted communication using SSL/TLS
-- Web-based dashboard for managing clients
-- Session management and command history
-
-## Requirements
-
-- Python 3.6 or higher (tested on Python 3.8+)
-- Network connectivity between server and client
-- Port 9999 open on the server (or whatever port you configure)
-- Basic understanding of networking concepts
+1.  **Install Python** (3.6 or higher) from [python.org](https://www.python.org/downloads/).
+2.  **Install Dependencies** by running this command in your terminal:
+    ```bash
+    pip install opencv-python pillow
+    ```
+    *   `opencv-python`: Required for the webcam feature.
+    *   `pillow`: Required for taking screenshots.
 
 ## Installation
 
-First, clone the repository:
+1.  **Clone the Repository**
+    Download the project files to your computer:
+    ```bash
+    git clone https://github.com/ved0904/RemoteCommandShell-Python.git
+    cd Reverse_Shell
+    ```
 
-```bash
-git clone https://github.com/ved0904/RemoteCommandShell-Python.git
-cd Reverse_Shell
-```
+2.  **Configure Settings**
+    Open `Reverse_Shell/config.json` in a text editor like Notepad or VS Code:
+    *   Find the `"client"` section.
+    *   Change `"server_ip"` to your **actual IP address** (the computer running `server.py`).
+    *   Make sure `"server_port"` matches the port in the `"server"` section (default is `9999`).
 
-Next, configure your settings by editing `Reverse_Shell/config.json`:
+## How to Run
 
-```json
-{
-    "server": {
-        "host": "0.0.0.0",
-        "port": 9999,
-        "log_file": "server.log"
-    },
-    "client": {
-        "server_ip": "YOUR_SERVER_IP_HERE",
-        "server_port": 9999,
-        "log_file": "client.log"
-    }
-}
-```
+Follow these steps in order:
 
-Make sure to replace `YOUR_SERVER_IP_HERE` with your actual server IP address.
+1.  **Start the Server (Your Computer)**
+    Open a terminal, go to the project folder, and run:
+    ```bash
+    cd Reverse_Shell
+    python server.py
+    ```
+    You will see: `Waiting for incoming connections...`
 
-There are no external dependencies to install. Everything uses Python's standard library (socket, subprocess, json, datetime).
+2.  **Start the Client (Target Computer)**
+    On the other computer, open a terminal in the project folder and run:
+    ```bash
+    python client.py
+    ```
+    If successful, it will connect immediately.
 
-## How to Use
+## Usage & Special Commands
 
-### Running the Server
+Once connected, you can type standard commands like `dir` or `cd`.
 
-On your computer (the one you'll be typing commands on):
+I've also built in some **special commands** to make things easier. Just type **`help`** in the server terminal to see the full list, which includes:
 
-```bash
-cd Reverse_Shell/Reverse_Shell
-python server.py
-```
-
-You should see something like this:
-
-```
-[2025-12-14 14:41:22] [INFO] ==================================================
-[2025-12-14 14:41:22] [INFO] Reverse Shell Server Starting...
-[2025-12-14 14:41:22] [INFO] Socket created successfully on port 9999
-[2025-12-14 14:41:22] [INFO] Waiting for incoming connections...
-```
-
-The server is now listening for client connections.
-
-### Running the Client
-
-On the remote computer (the one you want to control):
-
-Make sure the config.json file has the correct server IP, then run:
-
-```bash
-python client.py
-```
-
-The client will connect automatically and wait for commands.
-
-### Executing Commands
-
-Once a client connects, you can type commands on the server terminal. Here are some examples:
-
-```bash
-dir                    # List files (Windows)
-ls -la                 # List files (Linux/Mac)
-cd Documents           # Change directory
-ipconfig               # Network info (Windows)
-ifconfig               # Network info (Linux/Mac)
-whoami                 # Current user
-systeminfo             # System information (Windows)
-quit                   # Close connection and exit
-```
-
-## Project Structure
-
-```
-Reverse_Shell/
-├── Reverse_Shell/
-│   ├── server.py           # Server-side code (your computer)
-│   ├── client.py           # Client-side code (remote computer)
-│   ├── config.json         # Configuration file
-│   ├── server.log          # Server activity log (auto-generated)
-│   └── client.log          # Client activity log (auto-generated)
-└── README.md               # This file
-```
-
-## Configuration
-
-### Server Settings
-
-In the config.json file under "server":
-- **host**: Set to "0.0.0.0" to listen on all network interfaces
-- **port**: The port to listen on (default is 9999, change if needed)
-- **log_file**: Where to save server logs
-
-### Client Settings
-
-In the config.json file under "client":
-- **server_ip**: Your server's IP address (find using ipconfig or ifconfig)
-- **server_port**: Must match the port your server is listening on
-- **log_file**: Where to save client logs
-
-## Network Setup
-
-### Local Network (Same WiFi)
-
-To find your server's IP:
-- On Windows: Run `ipconfig` and look for IPv4 Address
-- On Linux/Mac: Run `ifconfig` or `ip addr`
-
-Update the client's config.json with this IP address, and make sure your firewall allows connections on port 9999.
-
-### AWS EC2 Deployment
-
-If you want to host the server on AWS:
-
-1. Launch an EC2 instance (Ubuntu is recommended)
-2. Configure the Security Group to allow inbound TCP traffic on port 9999
-3. SSH into your instance:
-   ```bash
-   ssh -i your-key.pem ubuntu@your-ec2-public-ip
-   ```
-4. Install Python if needed:
-   ```bash
-   sudo apt update
-   sudo apt install python3
-   ```
-5. Clone the repository and run as described above
-
-## Log Files
-
-Both the server and client create log files automatically. These are helpful for debugging issues.
-
-Example server.log:
-```
-[2025-12-14 14:41:22] [INFO] Configuration loaded from config.json
-[2025-12-14 14:41:22] [INFO] Socket created successfully on port 9999
-[2025-12-14 14:41:30] [INFO] Connection established! IP: 192.168.1.105 | Port: 54321
-[2025-12-14 14:41:35] [INFO] Command sent to 192.168.1.105: dir
-```
-
-Example client.log:
-```
-[2025-12-14 14:41:30] [INFO] Reverse Shell Client Starting...
-[2025-12-14 14:41:30] [INFO] Connected successfully to 192.168.1.100:9999
-[2025-12-14 14:41:35] [INFO] Executing command: dir
-```
-
-## Troubleshooting
-
-**Connection Refused Error**
-- Make sure the server is actually running
-- Double-check the server IP in the client's config.json
-- Verify that port 9999 is open in your firewall
-- Ensure both machines can reach each other on the network
-
-**Config File Not Found**
-- The program will use default values if config.json is missing
-- Check the log files for warning messages
-- Make sure config.json is in the same directory as the Python scripts
-
-**Commands Not Executing**
-- Some commands might require administrator or sudo privileges
-- Try using full paths for executables if needed
-- Check the client.log file for error messages
-
-## Security Notes
-
-This is an educational tool, so please use it responsibly.
-
-Current limitations:
-- Communication is not encrypted (this is planned for a future update)
-- No authentication mechanism (also planned for the future)
-- Configure your firewall to only allow connections from trusted IP addresses
-- Only use this on systems you own or have permission to access
-- Never use this for malicious purposes
-
-## What You'll Learn
-
-By working with this project, you'll gain experience with:
-- TCP socket programming and client-server architecture
-- Remote process execution using subprocess
-- Proper error handling and exception management
-- Configuration files and JSON parsing
-- File I/O and logging systems
-- Network security concepts and reverse shells
-- Remote system administration techniques
-
-## Author
-
-Parived Arora
-GitHub: @ved0904
-
-Repository: https://github.com/ved0904/RemoteCommandShell-Python
+*   **`screenshot`**: Instantly saves a screenshot of the client's screen to your computer.
+*   **`webcam`**: Snaps a picture from the client's webcam and saves it to your computer.
+*   **`wifi`**: (Windows only) Grabs all saved WiFi passwords from the client machine.
+*   **`download <filename>`**: Downloads a file from the client to your computer.
+*   **`upload <filename>`**: Uploads a file from your computer to the client.
+*   **`sysinfo`**: Shows detailed system information (OS, User, etc.).
+*   **`processes`**: Lists the top 50 running processes.
