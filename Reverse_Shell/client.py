@@ -253,13 +253,16 @@ Local IP: {local_ip}
                     continue
                 
                 if cmd == "processes":
-                    info = "=== Running Processes ===\n"
+                    info = "=== Running Processes (Top 50) ===\n"
                     try:
                         if platform.system() == 'Windows':
                             result = subprocess.run(['tasklist'], capture_output=True, text=True, timeout=15)
                         else:
                             result = subprocess.run(['ps', 'aux'], capture_output=True, text=True, timeout=15)
-                        info += result.stdout
+                        lines = result.stdout.split('\n')[:50]
+                        info += '\n'.join(lines)
+                        if len(result.stdout.split('\n')) > 50:
+                            info += f"\n... and {len(result.stdout.split(chr(10))) - 50} more processes\n"
                     except Exception as e:
                         info += f"Error getting processes: {str(e)}\n"
                     
