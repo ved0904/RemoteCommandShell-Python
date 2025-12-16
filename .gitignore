@@ -23,3 +23,13 @@ ENV/
 # OS files
 .DS_Store
 Thumbs.db
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+hackubuddy/
+hackubuddy_new/
+
+# Received files from client
+received_*
