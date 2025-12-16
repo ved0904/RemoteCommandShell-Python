@@ -48,6 +48,19 @@ def countdown_display(seconds, message="Retrying"):
         sys.stdout.flush()
         raise
 
+# Display progress bar for file transfers
+def show_progress(current, total, filename, action="Transferring"):
+    percent = (current / total) * 100
+    bar_len = 30
+    filled = int(bar_len * current / total)
+    bar = '█' * filled + '░' * (bar_len - filled)
+    size_mb = total / (1024 * 1024)
+    current_mb = current / (1024 * 1024)
+    sys.stdout.write(f"\r{action}: {filename} [{bar}] {percent:.1f}% ({current_mb:.2f}/{size_mb:.2f} MB)")
+    sys.stdout.flush()
+    if current >= total:
+        print()
+
 # Connect to server
 def connect_to_server(host, port):
     try:
@@ -92,6 +105,7 @@ def send_file(s, filename):
                     break
                 s.send(chunk)
                 bytes_sent += len(chunk)
+                show_progress(bytes_sent, file_size, filename, "Sending")
         
         log_message(f"File sent: {filename} ({file_size} bytes)")
         return True
@@ -114,6 +128,7 @@ def receive_file(s, filename):
                     break
                 f.write(chunk)
                 bytes_received += len(chunk)
+                show_progress(bytes_received, file_size, filename, "Receiving")
         
         log_message(f"File received: {filename}")
         return True

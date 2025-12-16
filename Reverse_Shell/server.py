@@ -34,6 +34,18 @@ def log_message(message, level="INFO"):
     except Exception as e:
         print(f"Warning: Could not write to log file: {e}")
 
+# Display progress bar for file transfers
+def show_progress(current, total, filename, action="Transferring"):
+    percent = (current / total) * 100
+    bar_len = 30
+    filled = int(bar_len * current / total)
+    bar = '█' * filled + '░' * (bar_len - filled)
+    size_mb = total / (1024 * 1024)
+    current_mb = current / (1024 * 1024)
+    print(f"\r{action}: {filename} [{bar}] {percent:.1f}% ({current_mb:.2f}/{size_mb:.2f} MB)", end='', flush=True)
+    if current >= total:
+        print()
+
 # Create socket
 def create_socket():
     try:
@@ -103,6 +115,7 @@ def receive_file(conn, filename):
                     break
                 f.write(chunk)
                 bytes_received += len(chunk)
+                show_progress(bytes_received, file_size, filename, "Downloading")
         
         log_message(f"File saved: {save_path}")
         return True
@@ -129,6 +142,7 @@ def send_file(conn, filename):
                     break
                 conn.send(chunk)
                 bytes_sent += len(chunk)
+                show_progress(bytes_sent, file_size, filename, "Uploading")
         
         log_message(f"File uploaded: {filename} ({file_size} bytes)")
         return True
