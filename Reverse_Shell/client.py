@@ -61,6 +61,12 @@ def show_progress(current, total, filename, action="Transferring"):
     if current >= total:
         print()
 
+# Validate filename (only check if empty)
+def validate_filename(filename):
+    if not filename or filename.strip() == "":
+        return False, "Filename cannot be empty"
+    return True, None
+
 # Connect to server
 def connect_to_server(host, port):
     try:
@@ -163,12 +169,21 @@ def execute_commands(s):
                 
                 if cmd.startswith("download "):
                     filename = cmd[9:].strip()
+                    valid, error = validate_filename(filename)
+                    if not valid:
+                        log_message(f"Invalid filename: {error}", "ERROR")
+                        s.send(b"FILE_NOT_FOUND")
+                        continue
                     log_message(f"Download requested: {filename}")
                     send_file(s, filename)
                     continue
                 
                 if cmd.startswith("upload "):
                     filename = cmd[7:].strip()
+                    valid, error = validate_filename(filename)
+                    if not valid:
+                        log_message(f"Invalid filename: {error}", "ERROR")
+                        continue
                     log_message(f"Upload incoming: {filename}")
                     receive_file(s, filename)
                     continue

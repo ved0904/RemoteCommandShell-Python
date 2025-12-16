@@ -46,6 +46,12 @@ def show_progress(current, total, filename, action="Transferring"):
     if current >= total:
         print()
 
+# Validate filename (only check if empty)
+def validate_filename(filename):
+    if not filename or filename.strip() == "":
+        return False, "Filename cannot be empty"
+    return True, None
+
 # Create socket
 def create_socket():
     try:
@@ -105,7 +111,8 @@ def receive_file(conn, filename):
         file_size = int.from_bytes(response, 'big')
         log_message(f"Receiving {filename} ({file_size} bytes)...")
         
-        save_path = f"received_{filename}"
+        base_name = os.path.basename(filename)
+        save_path = f"received_{base_name}"
         bytes_received = 0
         
         with open(save_path, 'wb') as f:
@@ -190,6 +197,11 @@ def send_command(conn, address):
             if len(str.encode(cmd)) > 0:
                 if cmd.startswith("download "):
                     filename = cmd.split(" ", 1)[1].strip()
+                    valid, error = validate_filename(filename)
+                    if not valid:
+                        print(f"Error: {error}")
+                        print(os.getcwd() + "> ", end="")
+                        continue
                     conn.send(str.encode(cmd))
                     receive_file(conn, filename)
                     print(os.getcwd() + "> ", end="")
@@ -197,6 +209,11 @@ def send_command(conn, address):
                 
                 if cmd.startswith("upload "):
                     filename = cmd.split(" ", 1)[1].strip()
+                    valid, error = validate_filename(filename)
+                    if not valid:
+                        print(f"Error: {error}")
+                        print(os.getcwd() + "> ", end="")
+                        continue
                     if not os.path.isfile(filename):
                         print(f"File not found: {filename}")
                         print(os.getcwd() + "> ", end="")
