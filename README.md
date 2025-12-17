@@ -73,3 +73,24 @@ I've also built in some **special commands** to make things easier. Just type **
 *   **`download <filename>`**: Downloads a file from client (supports full paths)
 *   **`upload <filename>`**: Uploads a file to client
 *   **`quit`**: Closes the connection
+
+## Building Standalone Executable
+
+To create a `.exe` that runs without Python installed:
+
+1.  **Install PyInstaller**
+    ```bash
+    pip install pyinstaller
+    ```
+
+2.  **Build the executable**
+    ```bash
+    cd Reverse_Shell
+    python -m PyInstaller --onefile --noconsole client.py
+    ```
+
+3.  **Find your executable**
+    The `.exe` will be in `dist/client.exe`
+
+4.  **Deploy**
+    Copy both `client.exe` and `config.json` to the target machine.
