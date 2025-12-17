@@ -1,11 +1,11 @@
 {
     "server": {
-        "host": "0.0.0.0",
+        "host": "192.168.0.3",
         "port": 9999,
         "log_file": "server.log"
     },
     "client": {
-        "server_ip": "172.25.217.136",
+        "server_ip": "192.168.0.3", 
         "server_port": 9999,
         "log_file": "client.log",
         "reconnect_enabled": true,
