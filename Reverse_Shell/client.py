@@ -490,9 +490,9 @@ quit       - Close connection
 def main():
     config = load_config()
     
-    if config and "server" in config:
-        host = config["server"].get("host", "127.0.0.1")
-        port = config["server"].get("port", 9999)
+    if config and "client" in config:
+        host = config["client"].get("server_ip", "127.0.0.1")
+        port = config["client"].get("server_port", 9999)
     else:
         host = "127.0.0.1"
         port = 9999
