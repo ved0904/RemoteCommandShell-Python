@@ -1,15 +1,19 @@
 {
     "server": {
-        "host": "192.168.0.3",
+        "host": "0.0.0.0",
         "port": 9999,
         "log_file": "server.log"
     },
     "client": {
-        "server_ip": "192.168.0.3", 
+        "server_ip": "127.0.0.1",
         "server_port": 9999,
         "log_file": "client.log",
         "reconnect_enabled": true,
         "reconnect_delay": 5,
         "max_reconnect_attempts": 0
+    },
+    "encryption": {
+        "enabled": true,
+        "secret_key": "MySecretKey123456789012345678901"
     }
 }
