@@ -53,3 +53,29 @@ def decrypt(ciphertext, key):
     decrypted = cipher.decrypt(encrypted)
     
     return unpad(decrypted)
+
+
+def send_encrypted(sock, data, key):
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    
+    encrypted = encrypt(data, key)
+    length = len(encrypted)
+    sock.send(length.to_bytes(4, 'big') + encrypted)
+
+
+def recv_encrypted(sock, key):
+    length_bytes = sock.recv(4)
+    if not length_bytes:
+        return None
+    
+    length = int.from_bytes(length_bytes, 'big')
+    
+    encrypted = b''
+    while len(encrypted) < length:
+        chunk = sock.recv(min(4096, length - len(encrypted)))
+        if not chunk:
+            break
+        encrypted += chunk
+    
+    return decrypt(encrypted, key)
