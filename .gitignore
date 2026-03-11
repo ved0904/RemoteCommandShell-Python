@@ -33,3 +33,6 @@ hackubuddy_new/
 
 # Received files from client
 received_*
+
+# SSL/TLS certificates and private keys
+certs/
